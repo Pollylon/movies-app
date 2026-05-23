@@ -13,69 +13,195 @@ function App() {
 
  
 const [movieApi, setMovieApi] = React.useState([])
-//// toggle-save state
-// const [toggleSave, setToggleSave] =React.useState(false)
+/// SET SEARCH IN STATE
+const [search,setSearch] = React.useState('')
 /// set save ids in state
 const [wacthList,setWacthList] = React.useState([])
 
+/// toggle function
+const [menutoggle, setmenutoggle]= React.useState(false)
 
+//// is card open 
+const [selectMovie , setSelectMovie] = React.useState(null )
+///// type 
+const [ type, setType ] = React.useState('tv')
+//// page number 
+const [ page , setpage] = React.useState(1)
+
+React.useEffect(()=>{
+  const save =JSON.parse (localStorage.getItem('save')) || []
+  setWacthList(save)
+},[]
+  )
  
 function toggleFunction(movies){
-  if(movieApi.includes(movies.id)){
-    setWacthList(pre => pre.filter(id => id !== movies.id))
+  let up;  
+  if(wacthList.includes(movies.id)){
+   up = wacthList.filter(id => id !== movies.id)
   }
   else{
-    setWacthList([... wacthList , movies.id ])
-
+    up=[...wacthList, movies.id]
   }
+  setWacthList(up)
+  localStorage.setItem('save' , JSON.stringify(up))
 }
 
 
-
+// search by name
+function searchFunction(e , search){
+e.preventDefault()
+const formda = new FormData(e.target)
+const searchValue = formda.get('search-bar')
+setSearch(searchValue)
+}
+ 
 React.useEffect(()=>{
- const url ="https://api.themoviedb.org/3/movie/popular?api_key=f02e37370e9e12fb65249dbf6db833fb&page=1"
+  const url = search?`https://api.themoviedb.org/3/search/movie?api_key=f02e37370e9e12fb65249dbf6db833fb&query=${search}` : 
+   `https://api.themoviedb.org/3/${type}/popular?api_key=f02e37370e9e12fb65249dbf6db833fb&page=${page}`
   fetch(url)
   .then(res=> res.json())
   .then(data => setMovieApi(data.results))
 
-},[])
+},[search , wacthList ,type ,page])
 console.log(movieApi)
+
+
+
+
+
+// 
+function handlPapular(papular){
+  setSearch(papular)
+}
 
   return (
     <div className="App">
-      {movieApi.map((movies)=>(
+
+      <header className="header">
+    
+        <form className="input-form" onSubmit={searchFunction} >
+          <input type="search" name="search-bar" placeholder="PAPULAR MOVIES"></input>
+
+
+          {movieApi.slice(0,6).map(any => (
+            <button  className="papular-search"
+            onClick={()=> handlPapular(any.title)}
+            >{any.title}</button> ))}
+
+</form>
+<div className="choise">
+      <button className="tv" onClick={()=> setType('tv')}>TV</button>
+      <button className="movie" onClick={()=> setType('movie')}>MOVIES</button>
+
+    </div>
+         <span className="menu-whacthlist">
+            <img 
+               className="menu-icon"
+                 src={menutoggle ? mune : unMune}
+                   alt="menu icon"
+                     onClick={() => setmenutoggle(pri => !pri) }
+        />
+ </span>
+</header>
+
+
+
+
+
+   {menutoggle ? (
+     !selectMovie ? (
+       <div>
+         {movieApi.filter(movie => wacthList.includes(movie.id)).map(movies => (
+           <div className="card" key={movies.id} >
+             <h2 className="title"onClick={() => setSelectMovie(movies)}>{movies.title}</h2>
+
+             <div className="vote-div">
+               <img className="vote-img" src={stareIcon} alt="star" />
+               <b className="vote-number">{movies.vote_average}</b>
+             </div>
+
+             <div className="saves">
+               <img className="save-icon" src={wacthList.includes(movies.id) ? SaveIcon : UnSaveIcon} alt="save icon" onClick={() => toggleFunction(movies)} />
+             </div>
+
+             <img onClick={() => setSelectMovie(movies)} src={movies.poster_path ? `https://image.tmdb.org/t/p/w500/${movies.poster_path}` : "https://via.placeholder.com"} alt={movies.title} />
+           </div>
+         ))}
+       </div>
+     ) : (
+       <div className="card-clicked">
+         <div className="card-open" key={selectMovie.id}>
+           <h2 className="title-open">{selectMovie.title}</h2>
+
+           <div className="vote-div-open">
+             <img className="vote-img-open" src={stareIcon} alt="star" />
+             <h2 className="vote-avg-open">{selectMovie.vote_average}</h2>
+             <h3 className="vote-num-open">{selectMovie.vote_count}</h3>
+           </div>
+
+           <div className="saves-open">
+             <img className="save-icon-open" src={wacthList.includes(selectMovie.id) ? SaveIcon : UnSaveIcon} alt="save icon" onClick={() => toggleFunction(selectMovie)} />
+           </div>
+
+           <div className="detail-open">
+             <h3 className="adult-open">age {selectMovie.adult === true ? '18+' : 'any'}</h3>
+             <h2 className="language-open">{selectMovie.original_language === 'en' ? 'ENGLISH' : 'un diffing'}</h2>
+             <date className='date-open'>{selectMovie.release_date}</date>
+             <p className="over-view-open">{selectMovie.overview}</p>
+           </div>
+           <img className="img-open" src={selectMovie.poster_path ? `https://image.tmdb.org/t/p/w500/${selectMovie.poster_path}` : "https://via.placeholder.com"} alt={selectMovie.title} />
+         </div>
+       </div>
+     )
+   ) : ( 
+    
+    !selectMovie ? (
+    <div className="movie-container">
+      {movieApi.map(movies  => (
         <div className="card" key={movies.id}>
-           <h2 className="title">{movies.title}</h2>
+          <h2 className="title" onClick={() => setSelectMovie(movies)}>{movies.title}</h2>
 
+          <div className="vote-div">
+            <img className="vote-img" src={stareIcon} alt="star" />
+            <b className="vote-number">{movies.vote_average}</b>
+          </div>
 
-           <div className="vote-div">
-             <img  className="vote-img"
-                 src={stareIcon}
-                   alt="star"
-                   
-                   />
-       <b className="vote-number">
-          {movies.vote_average}
-             </b>
-              </div>
-               
-               <div className="saves">
+          <div className="saves">
+            <img className="save-icon" src={wacthList.includes(movies.id) ? SaveIcon : UnSaveIcon} alt="save icon" onClick={() => toggleFunction(movies)} />
+          </div>
 
-                <img  className="save-icon"
-                src={wacthList.includes(movies.id)? SaveIcon: UnSaveIcon}
-                   alt="save icon"
-                     onClick={() => toggleFunction(movies)}
-                 />
-</div>
-
-             <img src={movies.poster_path
-                     ? `https://image.tmdb.org/t/p/w500/${movies.poster_path}`
-                     : "https://via.placeholder.com"}
-                       alt={movies.title}
-                     />
-</div>
-
+          <img onClick={() => setSelectMovie(movies)} src={movies.poster_path ? `https://image.tmdb.org/t/p/w500/${movies.poster_path}` : "https://via.placeholder.com"} alt={movies.title} />
+        </div>
       ))}
+    </div>
+  ) : (
+    <div className="card-clicked">
+      <div className="card-open" key={selectMovie.id}>
+        <h2 className="title-open">{selectMovie.title}</h2>
+
+        <div className="vote-div-open">
+          <img className="vote-img-open" src={stareIcon} alt="star" />
+          <h2 className="vote-avg-open">{selectMovie.vote_average}</h2>
+          <h3 className="vote-num-open">{selectMovie.vote_count}</h3>
+        </div>
+
+        <div className="saves-open">
+          <img className="save-icon-open" src={wacthList.includes(selectMovie.id) ? SaveIcon : UnSaveIcon} alt="save icon" onClick={() => toggleFunction(selectMovie)} />
+        </div>
+
+        <div className="detail-open">
+          <h3 className="adult-open">age {selectMovie.adult === true ? '18+' : 'any'}</h3>
+          <h2 className="language-open">{selectMovie.original_language === 'en' ? 'ENGLISH' : 'un diffing'}</h2>
+          <date className='date-open'>{selectMovie.release_date}</date>
+          <p className="over-view-open">{selectMovie.over_view}</p>
+        </div>
+        <img className="img-open" src={selectMovie.poster_path ? `https://image.tmdb.org/t/p/w500/${selectMovie.poster_path}` : "https://via.placeholder.com"} alt={selectMovie.title} />
+      </div>
+    </div>
+  )
+  )}
+
+  <button className="next-page" onClick={()=>setpage(pre => pre +1)}   >next-page</button>
     </div>
   );
 }
