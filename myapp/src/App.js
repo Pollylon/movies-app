@@ -60,7 +60,7 @@ React.useEffect(()=>{
   const url = (() => {
 
     if (search) {
-      return `https://api.themoviedb.org/3/search/movie?api_key=f02e37370e9e12fb65249dbf6db833fb&query=${encodeURIComponent(search)}`;
+      return `https://api.themoviedb.org/3/search/multi?api_key=f02e37370e9e12fb65249dbf6db833fb&query=${encodeURIComponent(search)}`;
     
      } else if (menutoggle) {
   
@@ -76,7 +76,18 @@ React.useEffect(()=>{
   
   fetch(url)
   .then(res=> res.json())
-  .then(data => setMovieApi(pre => page ===1 ? data.results : [...pre,...data.results]))
+  .then(data => {
+    if (search ){
+      setMovieApi(data.results)
+    }
+    else{
+  setMovieApi(prev =>
+    page ===1 ?
+    data.results:
+  
+       [...prev, ...data.results]
+  )};
+})
   
 },[search ,type ,page])
 console.log(movieApi)
@@ -144,6 +155,7 @@ function handlPapular(papular){
              <img onClick={() => setSelectMovie(movies)} src={movies.poster_path ? `https://image.tmdb.org/t/p/w500/${movies.poster_path}` : "https://via.placeholder.com"} alt={movies.title} />
            </div>
          ))}
+     
        </div>
      ) : (
        <div className="card-clicked">
@@ -190,6 +202,7 @@ function handlPapular(papular){
           <img onClick={() => setSelectMovie(movies)} src={movies.poster_path ? `https://image.tmdb.org/t/p/w500/${movies.poster_path}` : "https://via.placeholder.com"} alt={movies.title} />
         </div>
       ))}
+      <button className="next-page" onClick={()=>setpage(pre => pre +1)}   >next-page</button>
     </div>
   ) : (
     <div className="card-clicked">
@@ -219,7 +232,7 @@ function handlPapular(papular){
   )
   )}
 
-  <button className="next-page" onClick={()=>setpage(pre => pre +1)}   >next-page</button>
+  
     </div>
   );
 }
